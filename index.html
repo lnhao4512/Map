@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sơ Đồ Phân Tầng Khuôn Viên & Hầm Giữ Xe - Cơ Sở Chính ĐH Văn Lang</title>
+  <meta name="description" content="Sơ đồ tương tác 2D trực quan thể hiện mặt bằng khuôn viên và hệ thống hầm giữ xe ngầm ĐH Văn Lang">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-group">
+        <div class="brand-badge">VLU SMART MAP</div>
+        <div class="header-titles">
+          <h1>SƠ ĐỒ KHUÔN VIÊN & HỆ THỐNG HẦM XE NGẦM</h1>
+          <p class="subtitle">Trường Đại học Văn Lang • Cơ Sở Chính (Đặng Thùy Trâm - Dương Quảng Hàm)</p>
+        </div>
+      </div>
+
+      <!-- Layer Switcher Tabs -->
+      <div class="layer-switcher-container">
+        <div class="layer-tabs" role="tablist">
+          <button class="layer-btn" id="btn-ground" data-layer="ground">
+            <span class="btn-icon">🏛️</span>
+            <span class="btn-text">
+              <strong>Mặt Đất (Ground)</strong>
+              <small>Khuôn viên & Các Toà</small>
+            </span>
+          </button>
+          
+          <button class="layer-btn active" id="btn-xray" data-layer="xray">
+            <span class="btn-icon">⚡</span>
+            <span class="btn-text">
+              <strong>Đối Chiếu (X-Ray Overlay)</strong>
+              <small>Mặt đất + Hầm ngầm</small>
+            </span>
+          </button>
+
+          <button class="layer-btn" id="btn-basement" data-layer="basement">
+            <span class="btn-icon">🅿️</span>
+            <span class="btn-text">
+              <strong>Tầng Hầm (B1 Basement)</strong>
+              <small>Bãi đỗ 4500 chỗ & Luồng xe</small>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Action Stats -->
+      <div class="header-actions">
+        <button id="btn-simulate" class="action-btn primary" title="Bật/Tắt mô phỏng luồng xe di chuyển">
+          <span class="icon">🚗</span> <span id="sim-text">Chạy mô phỏng xe</span>
+        </button>
+        <button id="btn-guide-modal" class="action-btn secondary" title="Xem hướng dẫn đi vào & gửi xe">
+          <span class="icon">🧭</span> Chỉ đường thông minh
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Left Sidebar: Realtime Statistics & Quick Navigator -->
+      <aside class="sidebar-left">
+        <!-- Live Capacity Card -->
+        <div class="panel-card capacity-card">
+          <div class="card-header">
+            <h3>📊 Trạng Thái Sức Chứa Hầm</h3>
+            <span class="live-pill"><span class="dot"></span> Realtime</span>
+          </div>
+          <div class="capacity-stats">
+            <div class="stat-box primary">
+              <div class="stat-title">Hầm Xe Máy SV (Tổng)</div>
+              <div class="stat-number">3,000 <small>chỗ</small></div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 72%;"></div>
+              </div>
+              <div class="stat-sub">Đã đỗ: <strong>2,160</strong> • Trống: <span class="badge-free">840 chỗ</span></div>
+            </div>
+
+            <div class="stat-box accent">
+              <div class="stat-title">Hầm CB/GV/NV & Ô Tô</div>
+              <div class="stat-number">1,500 <small>chỗ</small></div>
+              <div class="progress-bar">
+                <div class="progress-fill accent-fill" style="width: 58%;"></div>
+              </div>
+              <div class="stat-sub">Đã đỗ: <strong>870</strong> • Trống: <span class="badge-free">630 chỗ</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zone Navigator & Building Directory -->
+        <div class="panel-card navigation-card">
+          <div class="card-header">
+            <h3>🏢 Danh Mục Toà Nhà & Phân Khu</h3>
+          </div>
+          <div class="building-list" id="building-list">
+            <!-- Dynamically populated / interactive building items -->
+          </div>
+        </div>
+
+        <!-- Ramps & In/Out Portals -->
+        <div class="panel-card ramps-card">
+          <div class="card-header">
+            <h3>🚪 Cửa Hầm & Ram Dốc (In / Out)</h3>
+          </div>
+          <div class="ramps-list">
+            <div class="ramp-item in" data-ramp="ramp-north-in">
+              <div class="ramp-badge in">IN 1</div>
+              <div class="ramp-info">
+                <strong>Lối vào Hầm CB/GV/NV (1500 chỗ)</strong>
+                <small>Giữa Toà A & Toà J • Từ Cổng Đặng Thùy Trâm</small>
+              </div>
+            </div>
+            <div class="ramp-item in" data-ramp="ramp-toai-in">
+              <div class="ramp-badge in">IN 2</div>
+              <div class="ramp-info">
+                <strong>Lối vào Hầm Sinh Viên (3000 chỗ)</strong>
+                <small>Đầu phía Bắc Toà I • Dọc đường nội bộ</small>
+              </div>
+            </div>
+            <div class="ramp-item out" data-ramp="ramp-south-out">
+              <div class="ramp-badge out">OUT 1</div>
+              <div class="ramp-info">
+                <strong>Lối lên / Ra Hầm Xe</strong>
+                <small>Giữa Toà F & Toà D • Ra Cổng Dương Quảng Hàm</small>
+              </div>
+            </div>
+            <div class="ramp-item out" data-ramp="ramp-toai-out">
+              <div class="ramp-badge out">OUT 2</div>
+              <div class="ramp-info">
+                <strong>Lối ra Hầm Xe Toà I</strong>
+                <small>Đầu phía Nam Toà I • Ra Cổng phụ Nguyễn Thái Sơn</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Map Viewer Container -->
+      <section class="map-viewport-wrapper">
+        <!-- Floating Viewport Controls -->
+        <div class="viewport-controls">
+          <div class="control-group">
+            <button id="btn-zoom-in" title="Phóng to (Zoom In)">➕</button>
+            <button id="btn-zoom-reset" title="Đặt lại góc nhìn (Reset View)">🎯</button>
+            <button id="btn-zoom-out" title="Thu nhỏ (Zoom Out)">➖</button>
+          </div>
+          <div class="control-group">
+            <button id="btn-toggle-labels" class="active" title="Bật/Tắt nhãn tên toà nhà">🏷️ Nhãn</button>
+            <button id="btn-toggle-flow" class="active" title="Bật/Tắt mũi tên luồng xe">🧭 Luồng xe</button>
+            <button id="btn-toggle-pillars" title="Bật/Tắt hệ cột hầm & thang máy">🏗️ Cột/Thang máy</button>
+          </div>
+          <div class="layer-indicator-badge" id="current-layer-indicator">
+            Chế độ: <strong>Đối Chiếu (X-Ray)</strong>
+          </div>
+        </div>
+
+        <!-- SVG / Canvas Map Viewport -->
+        <div id="map-container" class="map-container">
+          <svg id="campus-svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <!-- Filters & Shadows -->
+              <filter id="shadow-elevated" x="-10%" y="-10%" width="130%" height="130%">
+                <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="rgba(15, 23, 42, 0.35)" />
+              </filter>
+              <filter id="glow-primary" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+              <filter id="glow-neon" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="6" result="blur1" />
+                <feGaussianBlur stdDeviation="12" result="blur2" />
+                <feMerge>
+                  <feMergeNode in="blur2" />
+                  <feMergeNode in="blur1" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+
+              <!-- Gradients -->
+              <linearGradient id="grad-river" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"/>
+                <stop offset="50%" stop-color="#0284c7" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#0369a1" stop-opacity="0.95"/>
+              </linearGradient>
+
+              <linearGradient id="grad-ground-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#f8fafc" />
+                <stop offset="100%" stop-color="#e2e8f0" />
+              </linearGradient>
+
+              <linearGradient id="grad-basement-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0f172a" />
+                <stop offset="100%" stop-color="#1e293b" />
+              </linearGradient>
+
+              <linearGradient id="grad-building-a" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ef4444" />
+                <stop offset="100%" stop-color="#b91c1c" />
+              </linearGradient>
+
+              <linearGradient id="grad-building-k" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fb923c" />
+                <stop offset="100%" stop-color="#ea580c" />
+              </linearGradient>
+
+              <linearGradient id="grad-building-bc" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#60a5fa" />
+                <stop offset="100%" stop-color="#2563eb" />
+              </linearGradient>
+
+              <linearGradient id="grad-building-j" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#64748b" />
+                <stop offset="100%" stop-color="#334155" />
+              </linearGradient>
+
+              <linearGradient id="grad-building-g" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f472b6" />
+                <stop offset="100%" stop-color="#db2777" />
+              </linearGradient>
+
+              <linearGradient id="grad-building-f" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2dd4bf" />
+                <stop offset="100%" stop-color="#0d9488" />
+              </linearGradient>
+
+              <linearGradient id="grad-building-d" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#facc15" />
+                <stop offset="100%" stop-color="#ca8a04" />
+              </linearGradient>
+
+              <linearGradient id="grad-building-i" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8" />
+                <stop offset="100%" stop-color="#0284c7" />
+              </linearGradient>
+
+              <!-- Ramp slope patterns -->
+              <pattern id="ramp-slope-in" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45 0 0)">
+                <line x1="0" y1="0" x2="0" y2="20" stroke="#22c55e" stroke-width="4" />
+              </pattern>
+
+              <pattern id="ramp-slope-out" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45 0 0)">
+                <line x1="0" y1="0" x2="0" y2="20" stroke="#f43f5e" stroke-width="4" />
+              </pattern>
+
+              <!-- Parking Grid Patterns -->
+              <pattern id="parking-slots-h" width="30" height="15" patternUnits="userSpaceOnUse">
+                <rect width="30" height="15" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="2,2"/>
+                <line x1="0" y1="15" x2="30" y2="15" stroke="#334155" stroke-width="1.5"/>
+              </pattern>
+              
+              <pattern id="parking-slots-v" width="15" height="30" patternUnits="userSpaceOnUse">
+                <rect width="15" height="30" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="2,2"/>
+                <line x1="15" y1="0" x2="15" y2="30" stroke="#334155" stroke-width="1.5"/>
+              </pattern>
+
+              <!-- Arrow Markers -->
+              <marker id="arrow-in" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#22c55e" />
+              </marker>
+
+              <marker id="arrow-out" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+              </marker>
+
+              <marker id="arrow-internal" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+              </marker>
+
+              <marker id="arrow-campus-road" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#ea580c" />
+              </marker>
+
+              <marker id="arrow-campus-cyan" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+              </marker>
+            </defs>
+
+            <!-- Zoom/Pan Root Group -->
+            <g id="viewport-group">
+              <!-- Background Ambient Grid -->
+              <rect x="0" y="0" width="1600" height="1000" class="map-backdrop" />
+
+              <!-- ============================================== -->
+              <!-- LAYER 0: GEOGRAPHY / SURROUNDING ENVIRONMENT -->
+              <!-- ============================================== -->
+              <g id="layer-environment">
+                <!-- Outer Roads / Gates Context -->
+                <!-- Rạch Lăng (Canal) -->
+                <path d="M 850 0 C 860 120, 890 180, 1020 250 C 1120 300, 1150 450, 1220 700 C 1260 830, 1310 920, 1370 1000 L 1260 1000 C 1200 920, 1160 820, 1110 680 C 1050 460, 1010 330, 930 290 C 850 240, 800 180, 790 0 Z" fill="url(#grad-river)" opacity="0.9" />
+                
+                <text x="1170" y="550" class="map-label-river" transform="rotate(65 1170 550)">🌊 RẠCH LĂNG</text>
+                <text x="890" y="160" class="map-label-river" transform="rotate(35 890 160)">Rạch Lăng</text>
+                <text x="1330" y="930" class="map-label-gate-sub" transform="rotate(55 1330 930)">Hướng đường Lương Ngọc Quyến ➔</text>
+
+                <!-- Campus Outline / Boundary Plot -->
+                <path id="campus-perimeter" d="M 750 180 C 950 200, 1030 320, 1070 520 C 1100 680, 1110 820, 1110 840 L 460 840 L 460 480 L 750 180 Z" class="campus-boundary" />
+
+                <!-- Surrounding Roads (Đường Đặng Thùy Trâm, Dương Quảng Hàm) -->
+                <!-- Cổng chính Đặng Thùy Trâm -->
+                <g class="gate-marker" id="gate-north">
+                  <path d="M 800 0 L 800 180 M 830 0 L 830 180" stroke="#94a3b8" stroke-width="26" stroke-linecap="round" />
+                  <path d="M 815 0 L 815 180" stroke="#f1f5f9" stroke-width="4" stroke-dasharray="8,8" />
+                  <!-- Gate Sign -->
+                  <g transform="translate(815, 60)">
+                    <rect x="-140" y="-35" width="280" height="70" rx="10" class="gate-card-bg" />
+                    <text x="0" y="-12" class="gate-title">CỔNG CHÍNH ĐẶNG THÙY TRÂM</text>
+                    <text x="0" y="8" class="gate-addr">69/68 Đặng Thùy Trâm, P. Bình Lợi Trung</text>
+                    <text x="0" y="24" class="gate-sub">⬇ Vào cổng chính & kết nối ram dốc Hầm A/J</text>
+                  </g>
+                </g>
+
+                <!-- Cổng sau Dương Quảng Hàm -->
+                <g class="gate-marker" id="gate-south">
+                  <path d="M 810 840 L 810 1000 M 840 840 L 840 1000" stroke="#94a3b8" stroke-width="26" />
+                  <path d="M 825 840 L 825 1000" stroke="#f1f5f9" stroke-width="4" stroke-dasharray="8,8" />
+                  <g transform="translate(760, 930)">
+                    <rect x="-150" y="-30" width="300" height="60" rx="10" class="gate-card-bg" />
+                    <text x="0" y="-10" class="gate-title">CỔNG SAU DƯƠNG QUẢNG HÀM</text>
+                    <text x="0" y="8" class="gate-addr">80/68 Dương Quảng Hàm, P. An Nhơn</text>
+                    <text x="0" y="22" class="gate-sub">⬆ Lối vào / ra chính mặt Nam</text>
+                  </g>
+                </g>
+
+                <!-- Cổng sau phụ (Hẻm 566 Nguyễn Thái Sơn) -->
+                <g class="gate-marker" id="gate-west">
+                  <g transform="translate(360, 890)">
+                    <rect x="-140" y="-30" width="280" height="60" rx="10" class="gate-card-bg" />
+                    <text x="0" y="-10" class="gate-title">CỔNG SAU PHỤ (HẺM 566 NTS)</text>
+                    <text x="0" y="8" class="gate-addr">Dương Quảng Hàm / Nguyễn Thái Sơn</text>
+                    <text x="0" y="22" class="gate-sub">➡ Đón luồng ra từ Hầm Toà I</text>
+                  </g>
+                </g>
+
+                <!-- Đường nội bộ bao quanh (Orange & Cyan Ring Roads: 100% 1 CHIỀU NGƯỢC CHIỀU KIM ĐỒNG HỒ) -->
+                <!-- 1. TUYẾN VÒNG NGOÀI (CYAN): Dọc Kênh Lăng lên Bắc -> Vòng qua Trái sang Tây -->
+                <path d="M 980 840 C 1050 840, 1090 820, 1090 730 C 1080 550, 1040 390, 980 290 C 920 210, 840 190, 760 190" class="external-ring-road" marker-end="url(#arrow-campus-cyan)" />
+                <path d="M 760 190 C 720 185, 680 200, 680 220 C 620 250, 560 320, 525 390" class="external-ring-road" marker-end="url(#arrow-campus-cyan)" />
+
+                <!-- 2. TUYẾN VÒNG NỘI BỘ MÀU CAM (ORANGE): NGƯỢC CHIỀU KIM ĐỒNG HỒ (Tây -> Nam -> Đông -> Bắc) -->
+                <!-- Đoạn Nam: Đi từ Trái sang Phải (Tây sang Đông) từ Cổng phụ 566 qua Cổng DQH đến Ram dốc Đông Nam -->
+                <path d="M 360 890 L 450 840 L 525 840 L 825 840 L 980 840 L 1050 840" class="internal-ring-road" marker-end="url(#arrow-campus-road)" />
+                <!-- Nhánh nhập làn từ Cổng Dương Quảng Hàm sang Phải -->
+                <path d="M 825 950 L 825 840 L 980 840" class="internal-ring-road" marker-end="url(#arrow-campus-road)" />
+                <!-- Đoạn Đông: Đi từ Dưới lên Trên (Nam lên Bắc) dọc theo bờ Rạch Lăng -->
+                <path d="M 1050 840 C 1080 750, 1070 540, 1030 390 C 970 270, 870 200, 760 190" class="internal-ring-road" marker-end="url(#arrow-campus-road)" />
+                <!-- Đoạn Bắc: Đi từ Phải sang Trái (Đông sang Tây) trước Toà A vào Ram dốc -->
+                <path d="M 760 190 C 710 190, 660 210, 620 240 C 560 280, 525 340, 480 430" class="internal-ring-road" marker-end="url(#arrow-campus-road)" />
+                <!-- Đoạn Tây: Đi từ Trên xuống Dưới (Bắc xuống Nam) dọc Toà I ra Cổng phụ 566 -->
+                <path d="M 480 430 L 450 500 L 450 810 L 360 890" class="internal-ring-road" marker-end="url(#arrow-campus-road)" />
+              </g>
+
+              <!-- ============================================== -->
+              <!-- LAYER 1: BASEMENT LEVEL B1 (TẦNG HẦM NGẦM)     -->
+              <!-- ============================================== -->
+              <g id="layer-basement" class="layer-group">
+                <!-- Underground Floor Footprint Slab -->
+                <g class="basement-slab-group" filter="url(#shadow-elevated)">
+                  <path d="M 480 480 L 760 220 C 900 230, 970 300, 1010 440 C 1040 560, 1050 780, 1050 820 L 480 820 Z" class="basement-floor-poly" />
+                  
+                  <!-- Striped texture indicating underground parking slab -->
+                  <path d="M 490 490 L 750 235 C 880 245, 950 310, 990 445 C 1020 560, 1035 770, 1035 810 L 490 810 Z" class="basement-inner-border" />
+                </g>
+
+                <!-- Underground Parking Zones -->
+                <!-- Zone 1: CB/GV/NV & Car Zone (1500 Chỗ) - Phía Bắc (Dưới Toà A) -->
+                <g id="zone-b1-staff" class="parking-zone" data-zone="staff">
+                  <path d="M 580 470 L 740 260 C 840 270, 920 310, 950 400 L 760 470 Z" class="zone-poly staff-zone" />
+                  <g transform="translate(760, 310)">
+                    <rect x="-140" y="-18" width="280" height="38" rx="6" class="zone-tag-bg" />
+                    <text x="0" y="-2" class="zone-tag-title">🅿️ KHU HẦM CB / GV / NV & Ô TÔ (1,500 CHỖ)</text>
+                    <text x="0" y="12" class="zone-tag-cap">Ô tô & Xe máy Cán bộ • Lối vào Ram dốc Bắc</text>
+                  </g>
+                  <!-- Dense Car slots & Staff Motorbike bays on Main Map -->
+                  <g class="main-staff-bays" opacity="0.85">
+                    <!-- Car parking slots row -->
+                    <rect x="630" y="340" width="30" height="42" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="645" y="365" fill="#38bdf8" font-size="8" font-weight="800" text-anchor="middle">🚗A1</text>
+                    <rect x="665" y="340" width="30" height="42" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="680" y="365" fill="#38bdf8" font-size="8" font-weight="800" text-anchor="middle">🚗A2</text>
+                    <rect x="700" y="340" width="30" height="42" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="715" y="365" fill="#38bdf8" font-size="8" font-weight="800" text-anchor="middle">🚗A3</text>
+                    <rect x="735" y="340" width="30" height="42" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="750" y="365" fill="#38bdf8" font-size="8" font-weight="800" text-anchor="middle">🚗A4</text>
+                    <rect x="770" y="340" width="30" height="42" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="785" y="365" fill="#38bdf8" font-size="8" font-weight="800" text-anchor="middle">🚗A5</text>
+                    <rect x="805" y="340" width="30" height="42" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="820" y="365" fill="#38bdf8" font-size="8" font-weight="800" text-anchor="middle">🚗A6</text>
+                    <rect x="840" y="340" width="30" height="42" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="855" y="365" fill="#38bdf8" font-size="8" font-weight="800" text-anchor="middle">🚗A7</text>
+                    <rect x="875" y="340" width="30" height="42" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="890" y="365" fill="#38bdf8" font-size="8" font-weight="800" text-anchor="middle">🚗A8</text>
+
+                    <!-- Staff Multi-Bike Bays (35 bikes/bay) -->
+                    <rect x="620" y="395" width="60" height="30" rx="3" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+                    <text x="650" y="414" fill="#34d399" font-size="8" font-weight="800" text-anchor="middle">🏍️NV-01 [35]</text>
+                    <rect x="685" y="395" width="60" height="30" rx="3" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+                    <text x="715" y="414" fill="#34d399" font-size="8" font-weight="800" text-anchor="middle">🏍️NV-02 [35]</text>
+                    <rect x="750" y="395" width="60" height="30" rx="3" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+                    <text x="780" y="414" fill="#34d399" font-size="8" font-weight="800" text-anchor="middle">🏍️NV-03 [35]</text>
+                    <rect x="815" y="395" width="60" height="30" rx="3" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+                    <text x="845" y="414" fill="#34d399" font-size="8" font-weight="800" text-anchor="middle">🏍️NV-04 [35]</text>
+                    <rect x="880" y="395" width="60" height="30" rx="3" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+                    <text x="910" y="414" fill="#34d399" font-size="8" font-weight="800" text-anchor="middle">🏍️NV-05 [35]</text>
+                  </g>
+                </g>
+
+                <!-- Zone 2: Hầm Xe Máy Toà I (Tuyến Độc Lập 1 - 600 Chỗ) -->
+                <g id="zone-b1-toai" class="parking-zone" data-zone="student-toai">
+                  <rect x="495" y="515" width="170" height="295" rx="12" class="zone-poly student-zone" />
+                  <g transform="translate(580, 528)">
+                    <rect x="-75" y="-10" width="150" height="22" rx="4" class="zone-tag-bg mini" />
+                    <text x="0" y="4" class="zone-tag-title" font-size="10">🛵 HẦM TOÀ I (600 CHỖ)</text>
+                  </g>
+                  <!-- Multi-Bike Bays (Dãy Tây & Dãy Đông - 50 xe/khoang) -->
+                  <g class="main-toai-bays" opacity="0.9">
+                    <!-- Left Bays (Dãy Tây) -->
+                    <rect x="502" y="546" width="45" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="524" y="567" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">W01 [50]</text>
+
+                    <rect x="502" y="590" width="45" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="524" y="611" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">W02 [50]</text>
+
+                    <rect x="502" y="634" width="45" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="524" y="655" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">W03 [50]</text>
+
+                    <rect x="502" y="678" width="45" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="524" y="699" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">W04 [50]</text>
+
+                    <rect x="502" y="722" width="45" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="524" y="743" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">W05 [50]</text>
+
+                    <rect x="502" y="766" width="45" height="32" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="524" y="786" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">W06 [50]</text>
+
+                    <!-- Right Bays (Dãy Đông) -->
+                    <rect x="612" y="546" width="45" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="634" y="567" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">E01 [50]</text>
+
+                    <rect x="612" y="590" width="45" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="634" y="611" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">E02 [50]</text>
+
+                    <rect x="612" y="634" width="45" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="634" y="655" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">E03 [50]</text>
+
+                    <rect x="612" y="678" width="45" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="634" y="699" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">E04 [50]</text>
+
+                    <rect x="612" y="722" width="45" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="634" y="743" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">E05 [50]</text>
+
+                    <rect x="612" y="766" width="45" height="32" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="634" y="786" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">E06 [50]</text>
+                  </g>
+                </g>
+
+                <!-- Zone 3: Hầm Xe Máy Sinh Viên Lớn (3,000 Chỗ Liền Mạch) -->
+                <g id="zone-b1-student-main" class="parking-zone" data-zone="student-main">
+                  <rect x="735" y="485" width="305" height="330" rx="14" class="zone-poly student-zone" />
+                  
+                  <g transform="translate(887, 500)">
+                    <rect x="-140" y="-10" width="280" height="22" rx="4" class="zone-tag-bg mini" />
+                    <text x="0" y="5" class="zone-tag-title" font-size="10.5">🛵 HẦM XE MÁY SINH VIÊN (3,000 CHỖ)</text>
+                  </g>
+
+                  <!-- Multi-Vehicle Parking Bays Grid on Main Map -->
+                  <g class="main-student-bays" opacity="0.9">
+                    <!-- Row 1: Khu Toà K & B-C (Bắc) -->
+                    <rect x="745" y="518" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="766" y="539" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">K01 [80]</text>
+
+                    <rect x="792" y="518" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="813" y="539" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">K02 [80]</text>
+
+                    <rect x="839" y="518" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="860" y="539" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">K03 [80]</text>
+
+                    <rect x="895" y="518" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="916" y="539" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">BC1 [80]</text>
+
+                    <rect x="942" y="518" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="963" y="539" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">BC2 [80]</text>
+
+                    <rect x="989" y="518" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="1010" y="539" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">BC3 [80]</text>
+
+                    <!-- Row 2: Khu Toà K & B-C (Bắc - Hàng 2) -->
+                    <rect x="745" y="560" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="766" y="581" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">K04 [80]</text>
+
+                    <rect x="792" y="560" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="813" y="581" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">K05 [80]</text>
+
+                    <rect x="839" y="560" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="860" y="581" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">K06 [80]</text>
+
+                    <rect x="895" y="560" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="916" y="581" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">BC4 [80]</text>
+
+                    <rect x="942" y="560" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="963" y="581" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">BC5 [80]</text>
+
+                    <rect x="989" y="560" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="1010" y="581" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">BC6 [80]</text>
+
+                    <!-- Row 3: Khu Trung Tâm & Giữa -->
+                    <rect x="745" y="608" width="58" height="32" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="774" y="628" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">TT-01 [70]</text>
+
+                    <rect x="813" y="608" width="58" height="32" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="842" y="628" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">TT-02 [70]</text>
+
+                    <rect x="895" y="608" width="58" height="32" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="924" y="628" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">TT-03 [70]</text>
+
+                    <rect x="963" y="608" width="58" height="32" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="992" y="628" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">TT-04 [70]</text>
+
+                    <!-- Row 4: Khu Toà G, F, D (Nam) -->
+                    <rect x="745" y="658" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="766" y="679" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">G-01 [75]</text>
+
+                    <rect x="792" y="658" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="813" y="679" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">G-02 [75]</text>
+
+                    <rect x="839" y="658" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="860" y="679" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">G-03 [75]</text>
+
+                    <rect x="895" y="658" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="916" y="679" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">F-01 [75]</text>
+
+                    <rect x="942" y="658" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="963" y="679" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">F-02 [75]</text>
+
+                    <rect x="989" y="658" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="1010" y="679" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">D-01 [75]</text>
+
+                    <!-- Row 5: Khu Toà G, F, D (Nam - Hàng 2) -->
+                    <rect x="745" y="700" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="766" y="721" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">G-04 [75]</text>
+
+                    <rect x="792" y="700" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="813" y="721" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">G-05 [75]</text>
+
+                    <rect x="839" y="700" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="860" y="721" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">G-06 [75]</text>
+
+                    <rect x="895" y="700" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="916" y="721" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">F-03 [75]</text>
+
+                    <rect x="942" y="700" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="963" y="721" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">D-02 [75]</text>
+
+                    <rect x="989" y="700" width="42" height="34" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2"/>
+                    <text x="1010" y="721" fill="#e2e8f0" font-size="7.5" font-weight="800" text-anchor="middle">D-03 [75]</text>
+                  </g>
+                </g>
+
+                <!-- Underground Driving Aisles / Red Path Circuit Loop -->
+                <g id="basement-traffic-lanes">
+                  <!-- ========================================================= -->
+                  <!-- LUỒNG 1: VÀO HẦM BẮC CB/GV & Ô TÔ (TỪ PHẢI QUA TRÁI)     -->
+                  <!-- ========================================================= -->
+                  <path d="M 760 190 L 680 220 L 680 480" class="flow-path-in" marker-end="url(#arrow-in)" />
+
+                  <!-- ========================================================= -->
+                  <!-- LUỒNG 2: VÀO HẦM TOÀ I (VÒNG QUA TRÁI -> CHẠY XUỐNG NAM) -->
+                  <!-- ========================================================= -->
+                  <path d="M 680 220 L 525 390 L 525 810" class="flow-path-in" marker-end="url(#arrow-in)" />
+                  <!-- Thoát Toà I: Rẽ xéo sang Trái ra Cổng Phụ Hẻm 566 -->
+                  <path d="M 525 810 L 525 860 L 450 860 L 360 890" class="flow-path-out" marker-end="url(#arrow-out)" />
+
+                  <!-- ========================================================= -->
+                  <!-- LUỒNG 3: TRONG HẦM SINH VIÊN (CHẠY BẮC XUỐNG NAM)         -->
+                  <!-- ========================================================= -->
+                  <path d="M 680 480 L 890 480 L 890 730" class="flow-path-internal" marker-end="url(#arrow-internal)" />
+                  <path d="M 890 730 L 980 730 L 980 810" class="flow-path-out" marker-end="url(#arrow-out)" />
+
+                  <!-- ========================================================= -->
+                  <!-- LUỒNG 4: LỐI RA RAM DỐC NAM (VÒNG RA KÊNH LĂNG & RA CỔNG DQH) -->
+                  <!-- ========================================================= -->
+                  <!-- Thoát ra Kênh Lăng vòng lên phía Bắc theo đường màu đỏ -->
+                  <path d="M 980 810 L 980 840 C 1050 840, 1090 820, 1090 730" class="flow-path-out" marker-end="url(#arrow-out)" />
+                  <!-- Thoát ra Cổng Dương Quảng Hàm -->
+                  <path d="M 825 810 L 825 950" class="flow-path-out" marker-end="url(#arrow-out)" />
+                </g>
+
+                <!-- Structural Columns & Vertical Elevator Cores (Thang máy / Thang bộ lên tầng trên) -->
+                <g id="basement-vertical-cores" class="vertical-cores-group">
+                  <!-- Lift Core Toà A -->
+                  <g class="core-node" transform="translate(800, 360)">
+                    <rect x="-14" y="-14" width="28" height="28" rx="4" class="core-box" />
+                    <text x="0" y="4" class="core-text">🛗A</text>
+                  </g>
+                  <!-- Lift Core Toà J -->
+                  <g class="core-node" transform="translate(630, 560)">
+                    <rect x="-14" y="-14" width="28" height="28" rx="4" class="core-box" />
+                    <text x="0" y="4" class="core-text">🛗J</text>
+                  </g>
+                  <!-- Lift Core Toà K -->
+                  <g class="core-node" transform="translate(820, 560)">
+                    <rect x="-14" y="-14" width="28" height="28" rx="4" class="core-box" />
+                    <text x="0" y="4" class="core-text">🛗K</text>
+                  </g>
+                  <!-- Lift Core Toà B-C -->
+                  <g class="core-node" transform="translate(970, 560)">
+                    <rect x="-14" y="-14" width="28" height="28" rx="4" class="core-box" />
+                    <text x="0" y="4" class="core-text">🛗BC</text>
+                  </g>
+                  <!-- Lift Core Toà G -->
+                  <g class="core-node" transform="translate(730, 740)">
+                    <rect x="-14" y="-14" width="28" height="28" rx="4" class="core-box" />
+                    <text x="0" y="4" class="core-text">🛗G</text>
+                  </g>
+                  <!-- Lift Core Toà F -->
+                  <g class="core-node" transform="translate(880, 740)">
+                    <rect x="-14" y="-14" width="28" height="28" rx="4" class="core-box" />
+                    <text x="0" y="4" class="core-text">🛗F</text>
+                  </g>
+                  <!-- Lift Core Toà D -->
+                  <g class="core-node" transform="translate(1000, 740)">
+                    <rect x="-14" y="-14" width="28" height="28" rx="4" class="core-box" />
+                    <text x="0" y="4" class="core-text">🛗D</text>
+                  </g>
+                  <!-- Lift Core Toà I -->
+                  <g class="core-node" transform="translate(525, 670)">
+                    <rect x="-14" y="-14" width="28" height="28" rx="4" class="core-box" />
+                    <text x="0" y="4" class="core-text">🛗I</text>
+                  </g>
+                </g>
+
+                <!-- Concrete Structural Obstacle Pillars on Basement Map (Cột Vật Cản Bê Tông Chịu Lực) -->
+                <g id="basement-obstacle-pillars" class="obstacle-pillars-layer">
+                  <!-- Toa I Pillars (C01 - C04) -->
+                  <g class="main-pillar-obstacle" transform="translate(525, 560)">
+                    <rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/>
+                    <text x="0" y="3" class="main-pillar-text">C1</text>
+                  </g>
+                  <g class="main-pillar-obstacle" transform="translate(630, 620)">
+                    <rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/>
+                    <text x="0" y="3" class="main-pillar-text">C2</text>
+                  </g>
+                  <g class="main-pillar-obstacle" transform="translate(630, 710)">
+                    <rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/>
+                    <text x="0" y="3" class="main-pillar-text">C3</text>
+                  </g>
+                  <g class="main-pillar-obstacle" transform="translate(525, 780)">
+                    <rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/>
+                    <text x="0" y="3" class="main-pillar-text">C4</text>
+                  </g>
+
+                  <!-- Student Basement Pillars (S01 - S12) -->
+                  <g class="main-pillar-obstacle" transform="translate(760, 520)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S1</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(850, 520)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S2</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(940, 520)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S3</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(1015, 520)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S4</text></g>
+
+                  <g class="main-pillar-obstacle" transform="translate(760, 610)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S5</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(850, 610)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S6</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(940, 610)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S7</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(1015, 610)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S8</text></g>
+
+                  <g class="main-pillar-obstacle" transform="translate(760, 700)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S9</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(850, 700)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S10</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(940, 700)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S11</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(1015, 700)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">S12</text></g>
+
+                  <!-- Staff Basement Pillars (A01 - A06) -->
+                  <g class="main-pillar-obstacle" transform="translate(680, 360)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">A1</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(740, 360)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">A2</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(860, 360)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">A3</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(710, 420)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">A4</text></g>
+                  <g class="main-pillar-obstacle" transform="translate(830, 420)"><rect x="-7" y="-7" width="14" height="14" rx="2" class="main-pillar-box"/><text x="0" y="3" class="main-pillar-text">A5</text></g>
+                </g>
+              </g>
+
+              <!-- ==================================================== -->
+              <!-- LAYER 2: RAMPS & CONNECTORS (RAM DỐC IN & OUT)       -->
+              <!-- ==================================================== -->
+              <g id="layer-ramps" class="layer-group">
+                <!-- RAMP IN 1: Lối vào Hầm CB/GV/NV & Ô tô (Giữa Toà A & J) -->
+                <g class="interactive-ramp" id="ramp-north-in" data-name="Lối vào hầm CB/GV/NV 1500 chỗ">
+                  <polygon points="665,240 695,240 705,370 675,370" fill="url(#ramp-slope-in)" stroke="#22c55e" stroke-width="2" class="ramp-mesh" />
+                  <path d="M 680 200 L 680 370" stroke="#22c55e" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrow-in)" />
+                  <!-- Ramp 3D Angle Portal Frame -->
+                  <rect x="660" y="235" width="40" height="14" rx="3" fill="#15803d" stroke="#86efac" stroke-width="1.5" />
+                  
+                  <!-- Tag -->
+                  <g transform="translate(680, 205)">
+                    <rect x="-160" y="-35" width="320" height="42" rx="6" class="ramp-tooltip-bubble in" />
+                    <text x="0" y="-18" class="ramp-title in">⬇ LỐI VÀO HẦM XE MÁY & Ô TÔ (CB/GV/NV)</text>
+                    <text x="0" y="-2" class="ramp-cap in">SỨC CHỨA 1,500 CHỖ • BARRIER THÔNG MINH</text>
+                  </g>
+                </g>
+
+                <!-- RAMP IN 2: Lối vào Hầm Sinh Viên (Đầu Bắc Toà I) -->
+                <g class="interactive-ramp" id="ramp-toai-in" data-name="Lối vào hầm xe Toà I">
+                  <polygon points="505,430 545,430 545,510 505,510" fill="url(#ramp-slope-in)" stroke="#22c55e" stroke-width="2" class="ramp-mesh" />
+                  <path d="M 525 390 L 525 510" stroke="#22c55e" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrow-in)" />
+                  <rect x="500" y="425" width="50" height="14" rx="3" fill="#15803d" stroke="#86efac" stroke-width="1.5" />
+                  <!-- Tag -->
+                  <g transform="translate(480, 410)">
+                    <rect x="-120" y="-28" width="240" height="38" rx="6" class="ramp-tooltip-bubble in" />
+                    <text x="0" y="-14" class="ramp-title in">⬇ LỐI VÀO HẦM XE (TOÀ I)</text>
+                    <text x="0" y="2" class="ramp-cap in">Hầm giữ xe SV 3,000 chỗ</text>
+                  </g>
+                </g>
+
+                <!-- RAMP OUT 1: Lối lên / Lối ra hầm xe (Giữa Toà F & D) -->
+                <g class="interactive-ramp" id="ramp-south-out" data-name="Lối lên hầm xe (Toà F-D)">
+                  <polygon points="965,760 995,760 995,830 965,830" fill="url(#ramp-slope-out)" stroke="#ef4444" stroke-width="2" class="ramp-mesh" />
+                  <path d="M 980 760 L 980 850" stroke="#ef4444" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrow-out)" />
+                  <rect x="960" y="825" width="40" height="14" rx="3" fill="#991b1b" stroke="#fca5a5" stroke-width="1.5" />
+                  <!-- Tag -->
+                  <g transform="translate(980, 875)">
+                    <rect x="-80" y="-12" width="160" height="38" rx="6" class="ramp-tooltip-bubble out" />
+                    <text x="0" y="4" class="ramp-title out">⬆ LỐI LÊN HẦM XE</text>
+                    <text x="0" y="18" class="ramp-cap out">Ra cổng Dương Quảng Hàm</text>
+                  </g>
+                </g>
+
+                <!-- RAMP OUT 2: Lối ra hầm xe Toà I (Đầu Nam Toà I) -->
+                <g class="interactive-ramp" id="ramp-toai-out" data-name="Lối ra hầm xe Toà I">
+                  <polygon points="505,770 545,770 545,840 505,840" fill="url(#ramp-slope-out)" stroke="#ef4444" stroke-width="2" class="ramp-mesh" />
+                  <path d="M 525 770 L 525 860" stroke="#ef4444" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrow-out)" />
+                  <rect x="500" y="835" width="50" height="14" rx="3" fill="#991b1b" stroke="#fca5a5" stroke-width="1.5" />
+                  <!-- Tag -->
+                  <g transform="translate(480, 885)">
+                    <rect x="-70" y="-12" width="140" height="38" rx="6" class="ramp-tooltip-bubble out" />
+                    <text x="0" y="4" class="ramp-title out">⬆ LỐI RA HẦM XE</text>
+                    <text x="0" y="18" class="ramp-cap out">Ra cổng phụ hẻm 566</text>
+                  </g>
+                </g>
+              </g>
+
+              <!-- ==================================================== -->
+              <!-- LAYER 3: GROUND LEVEL BUILDINGS & FACILITIES         -->
+              <!-- ==================================================== -->
+              <g id="layer-ground" class="layer-group">
+                <!-- Ground Pedestrian Walkways & Gardens -->
+                <g id="campus-greens">
+                  <rect x="740" y="420" width="300" height="30" rx="15" fill="#10b981" opacity="0.25" />
+                  <rect x="660" y="470" width="30" height="350" rx="15" fill="#10b981" opacity="0.25" />
+                  <!-- Trees symbols -->
+                  <circle cx="760" cy="435" r="8" fill="#10b981" opacity="0.6"/>
+                  <circle cx="820" cy="435" r="9" fill="#059669" opacity="0.6"/>
+                  <circle cx="880" cy="435" r="8" fill="#10b981" opacity="0.6"/>
+                  <circle cx="940" cy="435" r="9" fill="#059669" opacity="0.6"/>
+                </g>
+
+                <!-- TOÀ A -->
+                <g class="interactive-building" id="bldg-toaa" data-id="toaa" data-name="Toà A">
+                  <path d="M 750 260 L 920 260 C 960 260, 990 290, 980 340 C 970 380, 950 400, 950 430 L 730 430 C 720 400, 710 380, 720 340 L 750 260 Z" fill="url(#grad-building-a)" class="building-poly" filter="url(#shadow-elevated)" />
+                  <!-- Dome structure detail on Toa A -->
+                  <ellipse cx="910" cy="330" rx="45" ry="40" fill="#dc2626" opacity="0.7" stroke="#fee2e2" stroke-width="1.5" />
+                  <text x="830" y="390" class="building-label main">TOÀ A</text>
+                </g>
+
+                <!-- TOÀ J -->
+                <g class="interactive-building" id="bldg-toaj" data-id="toaj" data-name="Toà J">
+                  <rect x="580" y="520" width="140" height="90" rx="12" fill="url(#grad-building-j)" class="building-poly" filter="url(#shadow-elevated)" />
+                  <text x="650" y="575" class="building-label main">TOÀ J</text>
+                </g>
+
+                <!-- TOÀ K (Khối tròn / Oval trung tâm) -->
+                <g class="interactive-building" id="bldg-toak" data-id="toak" data-name="Toà K">
+                  <ellipse cx="820" cy="565" rx="45" ry="45" fill="url(#grad-building-k)" class="building-poly" filter="url(#shadow-elevated)" />
+                  <text x="820" y="573" class="building-label main">TOÀ K</text>
+                </g>
+
+                <!-- TOÀ B - C -->
+                <g class="interactive-building" id="bldg-toabc" data-id="toabc" data-name="Toà B - C">
+                  <path d="M 900 500 L 1020 500 L 1020 600 L 980 600 L 980 620 L 900 620 Z" fill="url(#grad-building-bc)" class="building-poly" filter="url(#shadow-elevated)" />
+                  <text x="960" y="575" class="building-label main">TOÀ B - C</text>
+                </g>
+
+                <!-- TOÀ I (Dải xanh ngọc phía Tây) -->
+                <g class="interactive-building" id="bldg-toai" data-id="toai" data-name="Toà I">
+                  <rect x="500" y="470" width="50" height="340" rx="10" fill="url(#grad-building-i)" class="building-poly" filter="url(#shadow-elevated)" />
+                  <text x="525" y="640" class="building-label main vert" transform="rotate(-90 525 640)">TOÀ I</text>
+                </g>
+
+                <!-- SÂN BÓNG RỔ & HỒ BƠI -->
+                <g class="interactive-facility" id="fac-basketball" data-name="Sân Bóng Rổ">
+                  <rect x="580" y="630" width="65" height="50" rx="6" fill="#3b82f6" opacity="0.4" stroke="#60a5fa" stroke-width="1.5" />
+                  <line x1="612" y1="630" x2="612" y2="680" stroke="#fff" stroke-width="1" />
+                  <circle cx="612" cy="655" r="10" fill="none" stroke="#fff" stroke-width="1" />
+                  <text x="612" y="695" class="facility-label">Sân Bóng Rổ</text>
+                </g>
+
+                <g class="interactive-facility" id="fac-pool" data-name="Hồ Bơi">
+                  <rect x="580" y="710" width="65" height="45" rx="6" fill="#06b6d4" opacity="0.5" stroke="#22d3ee" stroke-width="1.5" />
+                  <path d="M 590 730 Q 612 725, 635 730" fill="none" stroke="#e0f2fe" stroke-width="1.5" />
+                  <text x="612" y="770" class="facility-label">Hồ Bơi</text>
+                </g>
+
+                <!-- TOÀ G -->
+                <g class="interactive-building" id="bldg-toag" data-id="toag" data-name="Toà G">
+                  <rect x="670" y="670" width="150" height="90" rx="12" fill="url(#grad-building-g)" class="building-poly" filter="url(#shadow-elevated)" />
+                  <text x="745" y="725" class="building-label main">TOÀ G</text>
+                </g>
+
+                <!-- TOÀ F -->
+                <g class="interactive-building" id="bldg-toaf" data-id="toaf" data-name="Toà F">
+                  <rect x="840" y="670" width="75" height="90" rx="12" fill="url(#grad-building-f)" class="building-poly" filter="url(#shadow-elevated)" />
+                  <text x="877" y="725" class="building-label main">TOÀ F</text>
+                </g>
+
+                <!-- TOÀ D -->
+                <g class="interactive-building" id="bldg-toad" data-id="toad" data-name="Toà D">
+                  <rect x="940" y="670" width="90" height="90" rx="12" fill="url(#grad-building-d)" class="building-poly" filter="url(#shadow-elevated)" />
+                  <text x="985" y="725" class="building-label main">TOÀ D</text>
+                </g>
+              </g>
+
+              <!-- ==================================================== -->
+              <!-- LAYER 4: VEHICLE SIMULATION & PATHFINDING PARTICLES  -->
+              <!-- ==================================================== -->
+              <g id="layer-simulation">
+                <!-- Highlight Path Group -->
+                <path id="guidance-path" d="" class="guidance-polyline" />
+                <!-- Dynamic moving vehicle markers rendered via JS -->
+                <g id="simulated-vehicles"></g>
+              </g>
+
+              <!-- Pin Markers & Hover Highlights -->
+              <g id="layer-overlays">
+                <circle id="selection-pulse" cx="-100" cy="-100" r="25" class="pulse-ring" />
+              </g>
+            </g>
+          </svg>
+
+          <!-- Interactive Tooltip Overlay -->
+          <div id="map-tooltip" class="map-tooltip" style="display: none;">
+            <div class="tooltip-header" id="tt-header">Tên khu vực</div>
+            <div class="tooltip-body" id="tt-body">Chi tiết thông tin khu vực</div>
+          </div>
+        </div>
+
+        <!-- Bottom Map Legend / Notes -->
+        <footer class="map-footer-legend">
+          <div class="legend-items">
+            <div class="legend-item"><span class="legend-color ramp-in-box"></span> <strong>Ram dốc IN:</strong> Vào hầm xe</div>
+            <div class="legend-item"><span class="legend-color ramp-out-box"></span> <strong>Ram dốc OUT:</strong> Lên mặt đất / Ra cổng</div>
+            <div class="legend-item"><span class="legend-color staff-zone-box"></span> Hầm CB/GV/NV (1,500 chỗ)</div>
+            <div class="legend-item"><span class="legend-color student-zone-box"></span> Hầm Sinh Viên (3,000 chỗ)</div>
+            <div class="legend-item"><span class="legend-color core-box-legend">🛗</span> Thang máy kết nối Tầng hầm ⇄ Toà nhà</div>
+          </div>
+        </footer>
+      </section>
+    </main>
+
+    <!-- ==================================================== -->
+    <!-- DETAILED BASEMENT BLUEPRINT MODAL (HẦM CHI TIẾT)     -->
+    <!-- ==================================================== -->
+    <div id="modal-basement-detail" class="detail-modal-backdrop" style="display: none;">
+      <div class="detail-modal-window">
+        <!-- Detail Header -->
+        <div class="detail-header">
+          <div class="detail-title-group">
+            <span class="detail-badge" id="dt-badge">BẢN VẼ CHI TIẾT TẦNG HẦM</span>
+            <div>
+              <h2 id="dt-title">Sơ Đồ Chi Tiết Hầm Giữ Xe</h2>
+              <p id="dt-subtitle">Hệ thống cột chịu lực, làn xe phân luồng và dãy ô đỗ chi tiết</p>
+            </div>
+          </div>
+
+          <!-- Controls inside detail modal -->
+          <div class="detail-header-actions">
+            <div class="basement-modal-tabs" id="modal-basement-tabs">
+              <button class="modal-tab-btn" id="mtab-student" data-mode="student">🅿️ Hầm Sinh Viên</button>
+              <button class="modal-tab-btn" id="mtab-toai" data-mode="toai">🏢 Hầm Toà I</button>
+              <button class="modal-tab-btn" id="mtab-staff" data-mode="staff">🚗 Hầm CB/GV/NV</button>
+            </div>
+            <div class="filter-pills" id="detail-filter-pills">
+              <button class="filter-pill active" data-filter="all">Tất cả</button>
+              <button class="filter-pill" data-filter="free">Còn trống</button>
+              <button class="filter-pill" data-filter="occupied">Đã đỗ</button>
+            </div>
+            <button id="btn-close-detail" class="detail-close-btn" title="Đóng bản vẽ chi tiết">&times;</button>
+          </div>
+        </div>
+
+        <!-- Detail Blueprint Workspace -->
+        <div class="detail-workspace">
+          <!-- Left blueprint inspector panel -->
+          <aside class="detail-sidebar">
+            <div class="blueprint-card">
+              <h4>📋 Thông Tin Mặt Bằng</h4>
+              <div class="bp-info-list" id="bp-info-list">
+                <!-- Dynamically filled -->
+              </div>
+            </div>
+
+            <div class="blueprint-card">
+              <h4>🔍 Định Vị & Tìm Xe (Find My Bike)</h4>
+              <div class="slot-search-box">
+                <input type="text" id="input-slot-search" placeholder="Nhập Cột (VD: C04), Mã ô (C04-A12) hoặc Biển số..." />
+                <button id="btn-search-slot">Tìm Xe</button>
+              </div>
+              <div id="search-slot-feedback" class="search-feedback"></div>
+              <div class="quick-pin-actions" style="margin-top: 10px; display: flex; gap: 6px;">
+                <button id="btn-pin-my-spot" class="action-btn secondary" style="flex: 1; font-size: 11px; padding: 6px 8px;">📍 Ghim Vị Trí Xe</button>
+                <button id="btn-guide-to-my-spot" class="action-btn primary" style="flex: 1; font-size: 11px; padding: 6px 8px;">🚶 Dẫn Đến Xe</button>
+              </div>
+            </div>
+
+            <div class="blueprint-card legend-card">
+              <h4>🏷️ Ký Hiệu Kỹ Thuật Hầm</h4>
+              <div class="bp-legend-grid">
+                <div class="bp-legend-item"><span class="bp-legend-color pillar-color"></span> <strong>Cột bê tông (Pillars):</strong> C1..Cn</div>
+                <div class="bp-legend-item"><span class="bp-legend-color slot-moto-free"></span> <strong>Ô xe máy còn trống</strong></div>
+                <div class="bp-legend-item"><span class="bp-legend-color slot-moto-occupied"></span> <strong>Ô đã có xe đỗ</strong></div>
+                <div class="bp-legend-item"><span class="bp-legend-color lane-arrow-color">➔</span> <strong>Làn 1 chiều (Bắt buộc Trái ➔ Phải)</strong></div>
+                <div class="bp-legend-item"><span class="bp-legend-color lift-color">🛗</span> <strong>Sảnh thang máy toà nhà</strong></div>
+                <div class="bp-legend-item"><span class="bp-legend-color exit-color">🚪</span> <strong>Cửa thoát hiểm PCCC</strong></div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Main Blueprint SVG Canvas Viewport -->
+          <div class="detail-canvas-viewport" id="detail-canvas-viewport">
+            <div class="blueprint-toolbar">
+              <button id="btn-dt-zoom-in" title="Phóng to">➕</button>
+              <button id="btn-dt-zoom-reset" title="Vừa màn hình">🎯</button>
+              <button id="btn-dt-zoom-out" title="Thu nhỏ">➖</button>
+            </div>
+            
+            <div class="blueprint-svg-wrapper" id="blueprint-svg-wrapper">
+              <!-- Rendered via JS based on selected basement (Toa I vs Toa K-B-C-G-F-D-A) -->
+              <svg id="blueprint-svg" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid meet"></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pathfinding / Wayfinding Modal -->
+    <div id="modal-guide" class="modal-backdrop" style="display: none;">
+      <div class="modal-dialog" style="max-width: 680px;">
+        <div class="modal-header">
+          <h2>🧭 Hướng Dẫn Chỉ Đường Vào & Gợi Ý Bãi Xe Thông Minh</h2>
+          <button id="btn-close-modal" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group" style="flex: 1.2;">
+              <label for="select-user-role">1. Bạn là đối tượng nào?</label>
+              <select id="select-user-role" class="custom-select">
+                <option value="student">🎓 Sinh viên (Xe máy)</option>
+                <option value="staff">👨‍🏫 Cán bộ / Giảng viên / Nhân viên (Xe máy & Ô tô)</option>
+                <option value="car">🚗 Khách / Giảng viên đi Xe Ô tô</option>
+                <option value="guest">🛵 Khách vãng lai / Học viên ngắn hạn (Xe máy)</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="select-entry-gate">2. Cổng bạn đi vào:</label>
+              <select id="select-entry-gate" class="custom-select">
+                <option value="gate-north">Cổng Chính Đặng Thùy Trâm</option>
+                <option value="gate-south">Cổng Sau Dương Quảng Hàm</option>
+                <option value="gate-west">Cổng Phụ Hẻm 566 Nguyễn Thái Sơn</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Dynamic Parking Lot Recommendation Options -->
+          <div class="parking-options-section">
+            <label class="section-subhead">💡 Các Option bãi xe hệ thống tự động gợi ý (Nhấp để chọn):</label>
+            <div class="parking-options-grid" id="parking-options-grid">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- Generated step-by-step route card -->
+          <div class="route-result-card" id="route-result-card">
+            <h4 id="route-card-title">📋 Lộ trình di chuyển 1 chiều tối ưu:</h4>
+            <ol id="route-steps-list">
+              <li>Đi qua Cổng chính Đặng Thùy Trâm.</li>
+              <li>Theo đường nội bộ rẽ phải vào Ram dốc IN (Đầu Toà I).</li>
+              <li>Quẹt thẻ giữ xe thông minh tại Barrier.</li>
+              <li>Xuống tầng hầm, đỗ tại Khu Vực Xe Máy Toà B-C.</li>
+              <li>Đi thang máy <strong>🛗BC</strong> lên sảnh toà nhà.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-view-option-blueprint" class="action-btn secondary" style="display: inline-flex; align-items: center; gap: 6px;">
+            🔍 Xem Chi Tiết Mặt Bằng Bãi Này
+          </button>
+          <button id="btn-draw-route" class="action-btn primary">Vẽ Lộ Trình Lên Bản Đồ ➔</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
